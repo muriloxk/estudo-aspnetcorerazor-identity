@@ -1,10 +1,6 @@
-using estudo_aspnetcore_identity.Areas.Identity.Data;
-using estudo_aspnetcore_identity.Extensions;
-using Microsoft.AspNetCore.Authorization;
+using estudo_aspnetcore_identity.Configuration;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -20,30 +16,17 @@ namespace estudo_aspnetcore_identity
 
         public IConfiguration Configuration { get; }
 
-        // This method gets called by the runtime. Use this method to add services to the container.
+     
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddDbContext<IdentityDataContext>(options =>
-                  options.UseInMemoryDatabase("IdentityDb"));
-
-            services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
-                .AddEntityFrameworkStores<IdentityDataContext>();
-
-            services.AddAuthorization(options =>
-            {
-                options.AddPolicy("PodeExcluir", policy => policy.RequireClaim("PodeExcluir"));
-                options.AddPolicy("PodeLer", policy => policy.Requirements.Add(new PermissaoNecessaria("PodeLer")));
-                options.AddPolicy("PodeGravar", policy => policy.Requirements.Add(new PermissaoNecessaria("PodeGravar")));
-            });
-
-            services.AddSingleton<IAuthorizationHandler, PermissaoNecessariaHandler>();
+            services.AddIdentityConfig();
+            services.AddAuthorizationConfig();
+            services.ResolveDependencies();
 
             services.AddControllersWithViews();
             services.AddRazorPages();
         }
 
-        // This method gets called by the runtime.
-        // Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
@@ -53,13 +36,9 @@ namespace estudo_aspnetcore_identity
             else
             {
                 app.UseExceptionHandler("/Home/Error");
-
-                // The default HSTS value is 30 days.
-                //You may want to change this for production scenarios,
-                //see https://aka.ms/aspnetcore-hsts.
-
                 app.UseHsts();
             }
+
             app.UseHttpsRedirection();
             app.UseStaticFiles();
 
